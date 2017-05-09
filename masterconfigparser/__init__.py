@@ -1,11 +1,20 @@
-"""Master/local configuration file parser.
+"""
+Master/local configuration file parser.
 
-A wrapper of ConfigParser.ConfigParser that supports a master/local configuration mix, supports the same
-API semantics.
-Access to configuration values will look in the local configuration first, followed by the master.
-Any changes to the configuration dictionary is saved to the local instance only, not the master.
-(This behaviour can be overridden by accessing the .master attribute of a MasterConfigParser instance)
-Writing the configuration changes will only write the local, unless overridden as above.
+A wrapper of ConfigParser.ConfigParser that supports a master/local
+configuration mix, supports a similar API as ConfigParser.
+
+Access to configuration values will look in the local configuration first,
+followed by the master.
+
+Any changes to the configuration dictionary is saved to the local instance
+only, not the master.
+
+(This behaviour can be overridden by accessing the .master attribute of
+a MasterConfigParser instance)
+
+Writing the configuration changes will only write the local, unless
+overridden as above.
 """
 
 from ConfigParser import *
@@ -48,10 +57,22 @@ class MasterConfigParser(object):
     def add_section(self, section):
         return self.local.add_section(section)
 
-    def has_section(self, section):
-        has_local = self.local.has_section(section)
-        if has_local: return has_local
-        return self.master.has_section(section)
+    def has_section(self, section, master=None):
+        """Check if a particular section exists in either the master or local
+        configurations.
+
+        API DIFFERENCE
+        If `master` is not specified, both local and master configurations will
+        be checked in turn. If `master` is False, only the local will be
+        checked. If `master` is True, only the master will be checked."""
+        if master is None:
+            has_local = self.local.has_section(section)
+            if has_local: return has_local
+            return self.master.has_section(section)
+        elif master is False:
+            return self.local.has_section(section)
+        elif master is True:
+            return self.master.has_section(section)
 
     def options(self, section):
         local_opts = self.local.options(section)
